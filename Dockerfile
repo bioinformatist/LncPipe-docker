@@ -20,7 +20,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	make \
 	# Provide head file like Python.h for CPAT compiling
 	python-dev \
-	# Must install cython here, DO NOT use pip, which will causing missing .h files
+	# Must install cython here, DO NOT use pip, which will cause missing .h files
 	cython \
 	# For CPAT compiling dependency
 	zlib1g-dev \

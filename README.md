@@ -1,6 +1,6 @@
 # About this Repo
 
-This is the Git repo of the [Docker image](https://docs.docker.com/docker-hub/official_repos/) for [LncPipe](https://git.oschina.net/likelet/workflow). See [the Docker Hub page](https://registry.hub.docker.com/_/golang/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
+This is the Git repo of the Docker image for [LncPipe](https://git.oschina.net/likelet/workflow). See [the Docker Hub page](https://hub.docker.com/r/bioinformatist/lncpipe/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
 
 The full readme is generated over in [docker-library/docs](https://github.com/docker-library/docs), specifically in [docker-library/docs/golang](https://github.com/docker-library/docs/tree/master/golang).
 
