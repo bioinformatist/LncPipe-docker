@@ -43,13 +43,13 @@ RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nex
 	
 # Install STAR
 RUN aria2c https://raw.githubusercontent.com/alexdobin/STAR/master/bin/Linux_x86_64/STAR -q -o /opt/STAR && \
-    ln -s /opt/STAR/bin/Linux_x86_64/STAR /usr/local/bin
+	chmod 755 /opt/STAR && \
+    ln -s /opt/STAR /usr/local/bin
 
 # Install cufflinks	
 RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/cufflinks-2.2.1.Linux_x86_64.tar.gz -q -o /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz && \
 	tar zxf /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz -C /opt/ && \
-	cd /opt/cufflinks-2.2.1.Linux_x86_64 && \
-	rm AUTHORS LICENSE README && \
+	rm /opt/cufflinks-2.2.1.Linux_x86_64/README && \
 	ln -s /opt/cufflinks-2.2.1.Linux_x86_64/* /usr/local/bin/ && \
 	rm /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz
 	
@@ -58,7 +58,7 @@ RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.t
 	tar zxf /opt/CPAT-1.2.3.tar.gz -C /opt/ && \
 	# DO NOT use absolute path here, changing directory is necessary, python interpreter will check current directory for dependencies
 	cd /opt/CPAT-1.2.3/ && \
-	python setup.py install && \
+	python setup.py install > /dev/null 2>&1 && \
 	rm -rf /opt/CPAT*
 	
 # Install PLEK
@@ -75,14 +75,15 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /o
 	rm -rf /opt/PLEK.1.2.tar.gz
 
 # Install CNCI
-# Use bash instead of sh for shopt only works with bash 
+# Use bash instead of sh for shopt only works with bash
+# May cause incorrect highlight for this block on docker-hub's Dockerfile page
 RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /opt/CNCI-master.zip && \
-	unzip /opt/CNCI-master.zip -d /opt/ && \
+	unzip -qq /opt/CNCI-master.zip -d /opt/ && \
 	rm /opt/CNCI-master.zip && \
-	unzip /opt/CNCI-master/libsvm-3.0.zip -d /opt/CNCI-master/ && \
+	unzip -qq /opt/CNCI-master/libsvm-3.0.zip -d /opt/CNCI-master/ && \
 	rm /opt/CNCI-master/libsvm-3.0.zip && \
 	cd /opt/CNCI-master/libsvm-3.0 && \
-	make && \
+	make -s && \
 	# enable the extglob shell option
 	shopt -s extglob && \
 	# Parentheses should be escaped
@@ -92,4 +93,19 @@ RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master 
 	chmod -R 755 * && \
 	ln -s /opt/CNCI-master/*.py /usr/local/bin/'
 	
+# Install StringTie
+RUN aria2c http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.3b.Linux_x86_64.tar.gz -q -o /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz && \
+	tar zxf /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz -C /opt/ && \
+	rm /opt/stringtie-1.3.3b.Linux_x86_64/README && \
+	ln -s /opt/stringtie-1.3.3b.Linux_x86_64/stringtie /usr/local/bin/stringtie && \
+	rm /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz
+
+#Install Hisat2	
+RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip -q -o /opt/hisat2-2.1.0-Linux_x86_64.zip && \
+	unzip -qq /opt/hisat2-2.1.0-Linux_x86_64.zip -d /opt/ && \
+	rm /opt/hisat2-2.1.0-Linux_x86_64.zip && \
+	cd /opt/hisat2-2.1.0 && \
+	rm -rf doc example *debug MANUAL* NEWS TUTORIAL && \
+	ln -s /opt/hisat2-2.1.0/hisat2* /usr/local/bin/ && \
+	ln -sf /opt/hisat2-2.1.0/*.py /usr/local/bin/
 	
