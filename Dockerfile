@@ -83,7 +83,7 @@ RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master 
 	unzip -qq /opt/CNCI-master/libsvm-3.0.zip -d /opt/CNCI-master/ && \
 	rm /opt/CNCI-master/libsvm-3.0.zip && \
 	cd /opt/CNCI-master/libsvm-3.0 && \
-	make -s && \
+	make > /dev/null 2>&1 && \
 	# enable the extglob shell option
 	shopt -s extglob && \
 	# Parentheses should be escaped
@@ -108,4 +108,16 @@ RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linu
 	rm -rf doc example *debug MANUAL* NEWS TUTORIAL && \
 	ln -s /opt/hisat2-2.1.0/hisat2* /usr/local/bin/ && \
 	ln -sf /opt/hisat2-2.1.0/*.py /usr/local/bin/
+	
+# Install BWA
+RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
+	unzip -qq /opt/bwa-master.zip -d /opt/ && \
+	rm /opt/bwa-master.zip && \
+	cd /opt/bwa-master && \
+	make > /dev/null 2>&1 && \
+	shopt -s extglob && \
+	rm -rfv !\("bwa"\|"qualfa2fq.pl"\|"xa2multi.pl"\|"COPYING"\) && \
+	ln -s /opt/bwa-master/bwa /usr/local/bin/ && \
+	ln -s /opt/bwa-master/*.pl /usr/local/bin/'
+	
 	
