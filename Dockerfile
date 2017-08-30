@@ -6,12 +6,14 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 # Update OS
 # Relieve the dependence of readline perl library by prohibiting interactive frontend first
 RUN export DEBIAN_FRONTEND=noninteractive && \
-	apt-get update &&\
-	apt-get install -y --no-install-recommends \
+	apt-get -qq update &&\
+	apt-get -qq install -y --no-install-recommends \
 	# For Nextflow (run groovy)
 	default-jre \
 	# For decompress GitHub archieve
 	unzip \
+	# pbzip2 \
+	pigz \
 	aria2 \
 	# Below two is needed for CPAT and PLEK compiling
 	gcc \
@@ -24,9 +26,19 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	cython \
 	# For CPAT compiling dependency
 	zlib1g-dev \
+	# For samtools compiling dependency
+	# libncurses5-dev \
 	# Cleaning up the apt cache helps keep the image size down
 	&& rm -rf /var/lib/apt/lists/*
 
+# Build databases
+RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q -o /LncPipeDB/gencode.v27.annotation.gtf.gz && \
+	cd /LncPipeDB && \
+	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q && \
+	aria2c https://lncipedia.org/downloads/lncipedia_4_1_hg38.gtf -q && \
+	aria2c https://lncipedia.org/downloads/lncipedia_4_1_hg19.gtf -q && \
+	pigz -d *.gz
+	
 # Install latest pip WITHOUT setuptools and wheel
 # DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
 # Keep the image size down
@@ -39,6 +51,7 @@ RUN pip -qqq install numpy
 	
 # Install nextflow
 RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nextflow -q -o /opt/nextflow && \
+	chmod 755 /opt/nextflow && \
 	ln -s /opt/nextflow /usr/local/bin
 	
 # Install STAR
@@ -48,14 +61,14 @@ RUN aria2c https://raw.githubusercontent.com/alexdobin/STAR/master/bin/Linux_x86
 
 # Install cufflinks	
 RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/cufflinks-2.2.1.Linux_x86_64.tar.gz -q -o /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz && \
-	tar zxf /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz -C /opt/ && \
+	tar xf /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	rm /opt/cufflinks-2.2.1.Linux_x86_64/README && \
 	ln -s /opt/cufflinks-2.2.1.Linux_x86_64/* /usr/local/bin/ && \
 	rm /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz
 	
 # Install CPAT
 RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
-	tar zxf /opt/CPAT-1.2.3.tar.gz -C /opt/ && \
+	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	# DO NOT use absolute path here, changing directory is necessary, python interpreter will check current directory for dependencies
 	cd /opt/CPAT-1.2.3/ && \
 	python setup.py install > /dev/null 2>&1 && \
@@ -63,7 +76,7 @@ RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.t
 	
 # Install PLEK
 RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
-	tar zxf /opt/PLEK.1.2.tar.gz -C /opt/ && \
+	tar xf /opt/PLEK.1.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
 	# Remove documents, demo files, source files, object files and R scripts
@@ -72,7 +85,7 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /o
 	# dos2unix in perl one-liner: remove BOM head and deal with \r problem
 	perl -CD -pi -e'tr/\x{feff}//d && s/[\r\n]+/\n/' *.py && \
 	ln -s /opt/PLEK.1.2/* /usr/local/bin/ && \
-	rm -rf /opt/PLEK.1.2.tar.gz
+	rm /opt/PLEK.1.2.tar.gz
 
 # Install CNCI
 # Use bash instead of sh for shopt only works with bash
@@ -95,12 +108,12 @@ RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master 
 	
 # Install StringTie
 RUN aria2c http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.3b.Linux_x86_64.tar.gz -q -o /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz && \
-	tar zxf /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz -C /opt/ && \
+	tar xf /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	rm /opt/stringtie-1.3.3b.Linux_x86_64/README && \
 	ln -s /opt/stringtie-1.3.3b.Linux_x86_64/stringtie /usr/local/bin/stringtie && \
 	rm /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz
 
-#Install Hisat2	
+# Install Hisat2	
 RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linux_x86_64.zip -q -o /opt/hisat2-2.1.0-Linux_x86_64.zip && \
 	unzip -qq /opt/hisat2-2.1.0-Linux_x86_64.zip -d /opt/ && \
 	rm /opt/hisat2-2.1.0-Linux_x86_64.zip && \
@@ -109,15 +122,35 @@ RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linu
 	ln -s /opt/hisat2-2.1.0/hisat2* /usr/local/bin/ && \
 	ln -sf /opt/hisat2-2.1.0/*.py /usr/local/bin/
 	
-# Install BWA
-RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
-	unzip -qq /opt/bwa-master.zip -d /opt/ && \
-	rm /opt/bwa-master.zip && \
-	cd /opt/bwa-master && \
-	make > /dev/null 2>&1 && \
-	shopt -s extglob && \
-	rm -rfv !\("bwa"\|"qualfa2fq.pl"\|"xa2multi.pl"\|"COPYING"\) && \
-	ln -s /opt/bwa-master/bwa /usr/local/bin/ && \
-	ln -s /opt/bwa-master/*.pl /usr/local/bin/'
+# Install Kallisto
+RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kallisto_linux-v0.43.1.tar.gz -q -o  /opt/kallisto_linux-v0.43.1.tar.gz && \
+	tar xf /opt/kallisto_linux-v0.43.1.tar.gz --use-compress-prog=pigz -C /opt/ && \
+	# There's some trashy pointers in Kallisto tarball
+	cd /opt && \
+	rm ._* kallisto_linux-v0.43.1.tar.gz && \
+	cd kallisto_linux-v0.43.1 && \
+	rm -rf ._* 	README.md test && \
+	ln -s /opt/kallisto_linux-v0.43.1/kallisto /usr/local/bin/
 	
+# Install BWA
+#RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
+#	unzip -qq /opt/bwa-master.zip -d /opt/ && \
+#	rm /opt/bwa-master.zip && \
+#	cd /opt/bwa-master && \
+#	make > /dev/null 2>&1 && \
+#	shopt -s extglob && \
+#	rm -rfv !\("bwa"\|"qualfa2fq.pl"\|"xa2multi.pl"\|"COPYING"\) && \
+#	ln -s /opt/bwa-master/bwa /usr/local/bin/ && \
+#	ln -s /opt/bwa-master/*.pl /usr/local/bin/'
+	
+# Install SAMtools (incomplete)
+#RUN aria2c https://github.com/samtools/samtools/releases/download/1.5/samtools-1.5.tar.bz2 -q -o /opt/samtools-1.5.tar.bz2 && \
+#	tar xf /opt/samtools-1.5.tar.bz2 --use-compress-prog=pbzip2 -C /opt/ && \
+#	cd /opt/samtools-1.5 && \
+#	make && \
+#	make install && \
+#	rm /opt/samtools-1.5.tar.bz2
+	
+# Install BCFtools
+# https://github.com/samtools/bcftools/releases/download/1.5/bcftools-1.5.tar.bz2
 	
