@@ -1,16 +1,12 @@
-# About this Repo
+# LncPipe
 
-This is the Git repo of the Docker image for [LncPipe](https://git.oschina.net/likelet/workflow). See [the Docker Hub page](https://hub.docker.com/r/bioinformatist/lncpipe/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
+This is the Git repo of the [Docker image](https://hub.docker.com/r/bioinformatist/lncpipe/) for [LncPipe](https://git.oschina.net/likelet/workflow).
 
-The full readme is generated over in [docker-library/docs](https://github.com/docker-library/docs), specifically in [docker-library/docs/golang](https://github.com/docker-library/docs/tree/master/golang).
+The LncPipe is ...
 
-See a change merged here that doesn't show up on the Docker Hub yet? Check [the "library/golang" manifest file in the docker-library/official-images repo](https://github.com/docker-library/official-images/blob/master/library/golang), especially [PRs with the "library/golang" label on that repo](https://github.com/docker-library/official-images/labels/library%2Fgolang). For more information about the official images process, see the [docker-library/official-images readme](https://github.com/docker-library/official-images/blob/master/README.md).
+## Requirement
 
----
+To use the Galaxy RNA workbench, you only need [Docker](https://www.docker.com/products/overview#h_installation), which can be installed in different ways, depending on the type of system you're running:
+- Users of Windows or OSX are encouraged to use [Docker Toolbox](https://www.docker.com/products/docker-toolbox), which provides a installer coupled with a user friendly interface to run Docker containers;
+- Linux users and people familiar with the command line can follow the instruction on installing Docker from its [documents](https://docs.docker.com/installation).
 
--	[Travis CI:  
-	![build status badge](https://img.shields.io/travis/docker-library/golang/master.svg)](https://travis-ci.org/docker-library/golang/branches)
--	[AppVeyor (Windows):  
-	![build status badge](https://ci.appveyor.com/api/projects/status/github/docker-library/golang?branch=master&svg=true)](https://ci.appveyor.com/project/docker-library/golang)
--	[Automated `update.sh`:  
-	![build status badge](https://doi-janky.infosiftr.net/job/update.sh/job/golang/badge/icon)](https://doi-janky.infosiftr.net/job/update.sh/job/golang)

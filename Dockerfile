@@ -43,8 +43,8 @@ RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v
 # DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
 # Keep the image size down
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
-    python /opt/get-pip.py --no-setuptools --no-wheel && \
-    rm /opt/get-pip.py
+	python /opt/get-pip.py --no-setuptools --no-wheel && \
+	rm /opt/get-pip.py
 
 # Install required python packages	
 RUN pip -qqq install numpy
@@ -57,7 +57,7 @@ RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nex
 # Install STAR
 RUN aria2c https://raw.githubusercontent.com/alexdobin/STAR/master/bin/Linux_x86_64/STAR -q -o /opt/STAR && \
 	chmod 755 /opt/STAR && \
-    ln -s /opt/STAR /usr/local/bin
+	ln -s /opt/STAR /usr/local/bin
 
 # Install cufflinks	
 RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/cufflinks-2.2.1.Linux_x86_64.tar.gz -q -o /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz && \
