@@ -43,7 +43,7 @@ RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v
 	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz
 
 # Add local databases
-COPY ./*.gz /LncPipeDB/
+ADD ./*.gz /LncPipeDB/
 
 # Set working directory back to /
 WORKDIR /
