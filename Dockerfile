@@ -3,6 +3,12 @@ FROM ubuntu
 LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 	description="Docker image containing all requirements for LncPipe"
 
+# pigz will decompress all archieves to this directory
+WORKDIR /LncPipeDB/
+
+# Once the container started, decompress all databases
+ENTRYPOINT pigz -d /LncPipeDB/*.gz
+	
 # Update OS
 # Relieve the dependence of readline perl library by prohibiting interactive frontend first
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -31,13 +37,16 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	# Cleaning up the apt cache helps keep the image size down
 	&& rm -rf /var/lib/apt/lists/*
 
-# Build databases
-RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q -o /LncPipeDB/gencode.v27.annotation.gtf.gz && \
-	cd /LncPipeDB && \
-	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q && \
-	aria2c https://lncipedia.org/downloads/lncipedia_4_1_hg38.gtf -q && \
-	aria2c https://lncipedia.org/downloads/lncipedia_4_1_hg19.gtf -q && \
-	pigz -d *.gz
+# Download databases
+# ADD CANNOT download FTP links and CANNOT resume from break point
+RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz  && \
+	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz
+
+# Add local databases
+COPY *.gz /LncPipeDB/
+
+# Set working directory back to /
+WORKDIR /
 	
 # Install latest pip WITHOUT setuptools and wheel
 # DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
@@ -89,8 +98,8 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /o
 
 # Install CNCI
 # Use bash instead of sh for shopt only works with bash
-# May cause incorrect highlight for this block on docker-hub's Dockerfile page
-RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /opt/CNCI-master.zip && \
+SHELL ["/bin/bash", "-c"]
+RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /opt/CNCI-master.zip && \
 	unzip -qq /opt/CNCI-master.zip -d /opt/ && \
 	rm /opt/CNCI-master.zip && \
 	unzip -qq /opt/CNCI-master/libsvm-3.0.zip -d /opt/CNCI-master/ && \
@@ -99,12 +108,15 @@ RUN bash -c 'aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master 
 	make > /dev/null 2>&1 && \
 	# enable the extglob shell option
 	shopt -s extglob && \
-	# Parentheses should be escaped
+	# Parentheses and the pipe symbol should be escaped
 	rm -rfv !\("svm-predict"\|"svm-scale"\) && \
 	cd .. && \
 	rm draw_class_pie.R LICENSE README.md && \
 	chmod -R 755 * && \
-	ln -s /opt/CNCI-master/*.py /usr/local/bin/'
+	ln -s /opt/CNCI-master/*.py /usr/local/bin/
+
+# Set back to default shell
+SHELL ["/bin/sh", "-c"]
 	
 # Install StringTie
 RUN aria2c http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.3b.Linux_x86_64.tar.gz -q -o /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz && \
