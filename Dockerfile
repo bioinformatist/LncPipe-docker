@@ -42,8 +42,8 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz  && \
 	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz
 
-# Add local databases
-ADD ./*.gz /LncPipeDB/
+# COPY local databases (we don't need auto-decompression, so DO NOT use ADD)
+COPY *.gz /LncPipeDB/
 
 # Set working directory back to /
 WORKDIR /
@@ -143,7 +143,8 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 	cd kallisto_linux-v0.43.1 && \
 	rm -rf ._* 	README.md test && \
 	ln -s /opt/kallisto_linux-v0.43.1/kallisto /usr/local/bin/
-	
+
+# Lines below maybe used later	
 # Install BWA
 #RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
 #	unzip -qq /opt/bwa-master.zip -d /opt/ && \
