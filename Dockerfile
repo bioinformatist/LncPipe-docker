@@ -7,7 +7,7 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 WORKDIR /LncPipeDB/
 
 # Once the container started, decompress all databases
-ENTRYPOINT pigz -d /LncPipeDB/*.gz
+ENTRYPOINT pigz -d /LncPipeDB/*.gz && /bin/bash
 	
 # Update OS
 # Relieve the dependence of readline perl library by prohibiting interactive frontend first
@@ -143,6 +143,14 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 	cd kallisto_linux-v0.43.1 && \
 	rm -rf ._* 	README.md test && \
 	ln -s /opt/kallisto_linux-v0.43.1/kallisto /usr/local/bin/
+	
+# Install Microsoft-R-Open
+RUN aria2c https://mran.microsoft.com/install/mro/3.4.0/microsoft-r-open-3.4.0.tar.gz -q -o /opt/microsoft-r-open-3.4.0.tar.gz && \
+	tar xf /opt/microsoft-r-open-3.4.0.tar.gz --use-compress-prog=pigz -C /opt/ && \
+	cd /opt/microsoft-r-open-3.4.0 
+#	./install.sh -as
+	
+	
 
 # Lines below maybe used later	
 # Install BWA
