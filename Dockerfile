@@ -147,8 +147,9 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 # Install Microsoft-R-Open
 RUN aria2c https://mran.microsoft.com/install/mro/3.4.0/microsoft-r-open-3.4.0.tar.gz -q -o /opt/microsoft-r-open-3.4.0.tar.gz && \
 	tar xf /opt/microsoft-r-open-3.4.0.tar.gz --use-compress-prog=pigz -C /opt/ && \
-	cd /opt/microsoft-r-open-3.4.0 
-#	./install.sh -as
+	cd /opt/microsoft-r-open && \
+	./install.sh -as && \
+	rm /opt/microsoft-r-open-3.4.0.tar.gz
 	
 	
 
