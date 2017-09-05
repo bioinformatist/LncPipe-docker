@@ -14,6 +14,18 @@ which provides a installer coupled with a user friendly interface to run Docker 
 
 [&#x25B2; back to top](#top)
 
+## Use docker image built for LncPipe with an interactive prompt
+
+
+
+### Using Docker Toolbox
+
+A video will be placed here.
+
+### Using Docker in command line
+
+
+
 ## Acknowledgement
 
 This README file is inspired by [Galaxy RNA workbench](https://github.com/bgruening/galaxy-rna-workbench).

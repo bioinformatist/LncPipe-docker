@@ -24,23 +24,27 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	# Below two is needed for CPAT and PLEK compiling
 	gcc \
 	g++ \
+	# Needed when compiling R package hexbin (required by plotly)
+	gfortran \
 	# For exec makefile of libsvm-3.0 used by CNCI
 	make \
 	# Provide head file like Python.h for CPAT compiling
 	python-dev \
-	# Must install cython here, DO NOT use pip, which will cause missing .h files
+	# Must install cython HERE, DO NOT use pip, which will cause missing .h files
 	cython \
 	# For CPAT compiling dependency
 	zlib1g-dev \
 	# For samtools compiling dependency
 	# libncurses5-dev \
-	# Cleaning up the apt cache helps keep the image size down
-	&& rm -rf /var/lib/apt/lists/*
+	# Required by R package openssl
+	libssl-dev \
+	# Required by R package curl
+	libcurl4-openssl-dev
 
 # Download databases
 # ADD CANNOT download FTP links and CANNOT resume from break point
-RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz  && \
-	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz
+RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q && \
+	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q
 
 # COPY local databases (we don't need auto-decompression, so DO NOT use ADD)
 COPY *.gz /LncPipeDB/
@@ -144,15 +148,35 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 	rm -rf ._* 	README.md test && \
 	ln -s /opt/kallisto_linux-v0.43.1/kallisto /usr/local/bin/
 	
-# Install Microsoft-R-Open
+# Install Microsoft-R-Open with MKL
 RUN aria2c https://mran.microsoft.com/install/mro/3.4.0/microsoft-r-open-3.4.0.tar.gz -q -o /opt/microsoft-r-open-3.4.0.tar.gz && \
 	tar xf /opt/microsoft-r-open-3.4.0.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/microsoft-r-open && \
 	./install.sh -as && \
-	rm /opt/microsoft-r-open-3.4.0.tar.gz
-	
-	
+	rm -rf /opt/microsoft-r*
 
+# Cleaning up the apt cache helps keep the image size down (must be placed here, since MRO installation need the cache)
+RUN rm -rf /var/lib/apt/lists/*
+
+# Install R packages (only for LncPipe-Reporter at current stage)
+RUN echo 'install.packages("devtools")' > /opt/packages.R && \
+	echo 'install.packages(c("curl", "httr"))' >> /opt/packages.R && \
+	echo 'install.packages("data.table")' >> /opt/packages.R && \
+	echo 'install.packages("cowplot")' >> /opt/packages.R && \
+	echo 'install.packages("DT")' >> /opt/packages.R && \
+    echo 'devtools::install_github("ramnathv/htmlwidgets")' >> /opt/packages.R && \
+	# Plotly always has too many bugs fixed, so keep using develop branch version :) 
+    echo 'devtools::install_github("ropensci/plotly")' >> /opt/packages.R && \
+	echo 'devtools::install_github("vqv/ggbiplot")' >> /opt/packages.R && \
+	echo 'source("https://bioconductor.org/biocLite.R")' >> /opt/packages.R && \
+	echo 'biocLite()' >> /opt/packages.R && \
+	echo 'biocLite("edgeR")' >> /opt/packages.R && \
+	# Heatmaply and plotly may need different version of ggplot2 in dev-branch, keep this statement last to avoid compatibility problems
+	printf 'install.packages("heatmaply")' >> /opt/packages.R && \
+    Rscript /opt/packages.R && \
+	rm /opt/packages.R
+	
+	
 # Lines below maybe used later	
 # Install BWA
 #RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
