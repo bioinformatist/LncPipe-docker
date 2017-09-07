@@ -39,7 +39,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	# Required by R package openssl
 	libssl-dev \
 	# Required by R package curl
-	libcurl4-openssl-dev
+	libcurl4-openssl-dev \
+	# Required by cpanm, or will get "Can't locate PerlIO.pm in @INC" error
+	perl
 
 # Download databases
 # ADD CANNOT download FTP links and CANNOT resume from break point
@@ -84,6 +86,7 @@ RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.t
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	# DO NOT use absolute path here, changing directory is necessary, python interpreter will check current directory for dependencies
 	cd /opt/CPAT-1.2.3/ && \
+	mv dat/* /LncPipeDB/ && \
 	python setup.py install > /dev/null 2>&1 && \
 	rm -rf /opt/CPAT*
 	
@@ -120,7 +123,7 @@ RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /op
 	ln -s /opt/CNCI-master/*.py /usr/local/bin/
 
 # Set back to default shell
-SHELL ["/bin/sh", "-c"]
+# SHELL ["/bin/sh", "-c"]
 	
 # Install StringTie
 RUN aria2c http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.3b.Linux_x86_64.tar.gz -q -o /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz && \
@@ -164,19 +167,36 @@ RUN echo 'install.packages("devtools")' > /opt/packages.R && \
 	echo 'install.packages("data.table")' >> /opt/packages.R && \
 	echo 'install.packages("cowplot")' >> /opt/packages.R && \
 	echo 'install.packages("DT")' >> /opt/packages.R && \
-    echo 'devtools::install_github("ramnathv/htmlwidgets")' >> /opt/packages.R && \
+	echo 'devtools::install_github("ramnathv/htmlwidgets")' >> /opt/packages.R && \
 	# Plotly always has too many bugs fixed, so keep using develop branch version :) 
-    echo 'devtools::install_github("ropensci/plotly")' >> /opt/packages.R && \
+	echo 'devtools::install_github("ropensci/plotly")' >> /opt/packages.R && \
 	echo 'devtools::install_github("vqv/ggbiplot")' >> /opt/packages.R && \
 	echo 'source("https://bioconductor.org/biocLite.R")' >> /opt/packages.R && \
 	echo 'biocLite()' >> /opt/packages.R && \
 	echo 'biocLite("edgeR")' >> /opt/packages.R && \
 	# Heatmaply and plotly may need different version of ggplot2 in dev-branch, keep this statement last to avoid compatibility problems
 	printf 'install.packages("heatmaply")' >> /opt/packages.R && \
-    Rscript /opt/packages.R && \
+	Rscript /opt/packages.R && \
 	rm /opt/packages.R
-	
-	
+
+# Install cpanminus
+#RUN aria2c https://cpanmin.us/ -q -o /opt/cpanm && \
+#	chmod +x /opt/cpanm && \
+#	ln -s /opt/cpanm /usr/local/bin/
+
+# Install Perl module FindBin, which is required by FastQC
+# RUN cpanm FindBin
+
+# Install FastQC
+RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip -q -o /opt/fastqc_v0.11.5.zip && \
+	unzip -qq /opt/fastqc_v0.11.5.zip -d /opt/ && \
+	rm /opt/fastqc_v0.11.5.zip && \
+	cd /opt/FastQC && \
+	shopt -s extglob && \
+	rm -rfv !\("fastqc"\|*.jar\) && \
+	chmod 755 * && \
+	ln -s /opt/FastQC/fastqc /usr/local/bin/
+
 # Lines below maybe used later	
 # Install BWA
 #RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
