@@ -7,7 +7,13 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 WORKDIR /LncPipeDB/
 
 # Once the container started, decompress all databases
-ENTRYPOINT pigz -d /LncPipeDB/*.gz && /bin/bash
+ENTRYPOINT pigz -d /LncPipeDB/*.gz && \
+	mkdir /LncPipeDB/hg38 /LncPipeDB/hg19 && \
+	mv /LncPipeDB/*hg38*.gtf /LncPipeDB/hg38 && \
+	mv /LncPipeDB/gencode.v27.annotation.gtf /LncPipeDB/hg38 && \
+	mv /LncPipeDB/*hg19*.gtf /LncPipeDB/hg19 && \
+	mv /LncPipeDB/gencode.v27lift37.annotation.gtf /LncPipeDB/hg19 && \
+	/bin/bash
 	
 # Update OS
 # Relieve the dependence of readline perl library by prohibiting interactive frontend first
@@ -41,6 +47,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	# Required by R package curl
 	libcurl4-openssl-dev \
 	# Required by cpanm, or will get "Can't locate PerlIO.pm in @INC" error
+	# FindBin module in 
 	perl
 
 # Download databases
