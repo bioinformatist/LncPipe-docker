@@ -174,6 +174,7 @@ RUN echo 'install.packages("devtools")' > /opt/packages.R && \
 	echo 'install.packages("data.table")' >> /opt/packages.R && \
 	echo 'install.packages("cowplot")' >> /opt/packages.R && \
 	echo 'install.packages("DT")' >> /opt/packages.R && \
+	echo 'install.packages("ggsci")' >> /opt/packages.R && \
 	echo 'devtools::install_github("ramnathv/htmlwidgets")' >> /opt/packages.R && \
 	# Plotly always has too many bugs fixed, so keep using develop branch version :) 
 	echo 'devtools::install_github("ropensci/plotly")' >> /opt/packages.R && \
@@ -203,6 +204,12 @@ RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.1
 	rm -rfv !\("fastqc"\|*.jar\) && \
 	chmod 755 * && \
 	ln -s /opt/FastQC/fastqc /usr/local/bin/
+	
+# Install Pandoc (required by reporter)
+RUN aria2c https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb -q -o /opt/pandoc-1.19.2.1-1-amd64.deb && \
+	dpkg -i /opt/pandoc-1.19.2.1-1-amd64.deb && \
+	rm /opt/pandoc-1.19.2.1-1-amd64.deb
+
 
 # Lines below maybe used later	
 # Install BWA
