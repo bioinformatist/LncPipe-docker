@@ -24,7 +24,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	default-jre \
 	# For decompress GitHub archieve
 	unzip \
-	# pbzip2 \
+	pbzip2 \
 	pigz \
 	aria2 \
 	# Below two is needed for CPAT and PLEK compiling
@@ -98,7 +98,7 @@ RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.t
 	rm -rf /opt/CPAT*
 	
 # Install PLEK
-RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
+RUN aria2c https://jaist.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
 	tar xf /opt/PLEK.1.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
@@ -111,8 +111,9 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /o
 	rm /opt/PLEK.1.2.tar.gz
 
 # Install CNCI
-# Use bash instead of sh for shopt only works with bash
+# Use bash instead for shopt only works with bash
 SHELL ["/bin/bash", "-c"]
+
 RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /opt/CNCI-master.zip && \
 	unzip -qq /opt/CNCI-master.zip -d /opt/ && \
 	rm /opt/CNCI-master.zip && \
@@ -168,27 +169,8 @@ RUN aria2c https://mran.microsoft.com/install/mro/3.4.0/microsoft-r-open-3.4.0.t
 # Cleaning up the apt cache helps keep the image size down (must be placed here, since MRO installation need the cache)
 RUN rm -rf /var/lib/apt/lists/*
 
-# Install R packages (only for LncPipe-Reporter at current stage)
-RUN echo 'install.packages("devtools")' > /opt/packages.R && \
-	echo 'install.packages(c("curl", "httr"))' >> /opt/packages.R && \
-	echo 'install.packages("data.table")' >> /opt/packages.R && \
-	echo 'install.packages("cowplot")' >> /opt/packages.R && \
-	echo 'install.packages("DT")' >> /opt/packages.R && \
-	echo 'install.packages("ggsci")' >> /opt/packages.R && \
-	echo 'devtools::install_github("ramnathv/htmlwidgets")' >> /opt/packages.R && \
-	# Plotly always has too many bugs fixed, so keep using develop branch version :) 
-	echo 'devtools::install_github("ropensci/plotly")' >> /opt/packages.R && \
-	echo 'devtools::install_github("vqv/ggbiplot")' >> /opt/packages.R && \
-	echo 'source("https://bioconductor.org/biocLite.R")' >> /opt/packages.R && \
-	echo 'biocLite()' >> /opt/packages.R && \
-	echo 'biocLite("edgeR")' >> /opt/packages.R && \
-	# Heatmaply and plotly may need different version of ggplot2 in dev-branch, keep this statement last to avoid compatibility problems
-	printf 'install.packages("heatmaply")' >> /opt/packages.R && \
-	Rscript /opt/packages.R && \
-	rm /opt/packages.R
-
 # Install cpanminus
-#RUN aria2c https://cpanmin.us/ -q -o /opt/cpanm && \
+# RUN aria2c https://cpanmin.us/ -q -o /opt/cpanm && \
 #	chmod +x /opt/cpanm && \
 #	ln -s /opt/cpanm /usr/local/bin/
 
@@ -209,7 +191,33 @@ RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.1
 RUN aria2c https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb -q -o /opt/pandoc-1.19.2.1-1-amd64.deb && \
 	dpkg -i /opt/pandoc-1.19.2.1-1-amd64.deb && \
 	rm /opt/pandoc-1.19.2.1-1-amd64.deb
+	
+# Install PyPy
+RUN aria2c https://bitbucket.org/squeaky/portable-pypy/downloads/pypy-5.9-linux_x86_64-portable.tar.bz2 -q -o /opt/pypy-5.9-linux_x86_64-portable.tar.bz2 && \
+	tar xf /opt/pypy-5.9-linux_x86_64-portable.tar.bz2 --use-compress-prog=pbzip2 -C /opt/ && \
+	rm /opt/pypy-5.9-linux_x86_64-portable/README.rst /opt/pypy-5.9-linux_x86_64-portable.tar.bz2 && \
+	ln -s /opt/pypy-5.9-linux_x86_64-portable/bin/pypy /usr/local/bin/	
 
+# Install BEDOPS
+RUN aria2c https://github.com/bedops/bedops/releases/download/v2.4.29/bedops_linux_x86_64-v2.4.29.tar.bz2 -q -o /opt/bedops_linux_x86_64-v2.4.29.tar.bz2 && \
+	tar xf /opt/bedops_linux_x86_64-v2.4.29.tar.bz2 --use-compress-prog=pbzip2 -C /opt/ && \
+	ln -s /opt/bin/* /usr/local/bin/ && \
+	rm /opt/bedops_linux_x86_64-v2.4.29.tar.bz2
+	
+# Install AfterQC
+RUN aria2c https://github.com/OpenGene/AfterQC/archive/v0.9.6.tar.gz -q -o /opt/v0.9.6.tar.gz && \
+	tar xf /opt/v0.9.6.tar.gz --use-compress-prog=pigz -C /opt/ && \
+	cd /opt/AfterQC-0.9.6 && \
+	make && \
+	# Use PyPy to run AfterQC as default
+	perl -i -lape's/python/pypy/ if $. == 1' after.py && \
+	rm -rf Dockerfile Makefile README.md testdata report_sample && \
+	ln -s /opt/AfterQC-0.9.6/*.py /usr/local/bin/ && \
+	rm /opt/v0.9.6.tar.gz
+	
+
+# Install R package LncPipeReporter
+RUN Rscript -e "source('http://bioconductor.org/biocLite.R'); install.packages(c('curl', 'httr')); install.packages('devtools'); devtools::install_github('bioinformatist/LncPipeReporter')"
 
 # Lines below maybe used later	
 # Install BWA
