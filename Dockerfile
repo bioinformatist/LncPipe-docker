@@ -91,7 +91,7 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 	
 # Install CPAT
 # DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
-RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
+RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/CPAT-1.2.3/ && \
 	mv dat/* /LncPipeDB/ && \
@@ -101,7 +101,7 @@ RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.t
 # Install PLEK
 # Remove documents, demo files, source files, object files and R scripts
 # dos2unix in perl one-liner: remove BOM head and deal with \r problem
-RUN aria2c https://jaist.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
+RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
 	tar xf /opt/PLEK.1.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
