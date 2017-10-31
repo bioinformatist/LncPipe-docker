@@ -91,11 +91,11 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 	
 # Install CPAT
 # DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
-RUN aria2c --check-certificate=false https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
+RUN aria2c --check-certificate=false https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -o /opt/CPAT-1.2.3.tar.gz && \
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/CPAT-1.2.3/ && \
 	mv dat/* /LncPipeDB/ && \
-	python setup.py install > /dev/null 2>&1 && \
+	python setup.py install && \
 	rm -rf /opt/CPAT*
 	
 # Install PLEK
