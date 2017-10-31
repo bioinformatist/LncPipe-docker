@@ -47,13 +47,14 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	# Required by R package curl
 	libcurl4-openssl-dev \
 	# Required by cpanm, or will get "Can't locate PerlIO.pm in @INC" error
-	# FindBin module in 
+	# With FindBin module，also is required by FastQC 
 	perl
 
 # Download databases
 # ADD CANNOT download FTP links and CANNOT resume from break point
 RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q && \
-	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q
+	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q && \
+	aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz -q
 
 # COPY local databases (we don't need auto-decompression, so DO NOT use ADD)
 COPY *.gz /LncPipeDB/
@@ -89,31 +90,33 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 	rm /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz
 	
 # Install CPAT
+# DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
 RUN aria2c https://jaist.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
-	# DO NOT use absolute path here, changing directory is necessary, python interpreter will check current directory for dependencies
 	cd /opt/CPAT-1.2.3/ && \
 	mv dat/* /LncPipeDB/ && \
 	python setup.py install > /dev/null 2>&1 && \
 	rm -rf /opt/CPAT*
 	
 # Install PLEK
+# Remove documents, demo files, source files, object files and R scripts
+# dos2unix in perl one-liner: remove BOM head and deal with \r problem
 RUN aria2c https://jaist.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
 	tar xf /opt/PLEK.1.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
-	# Remove documents, demo files, source files, object files and R scripts
 	rm *.pdf *.txt *.h *.c *.model *.range *.fa *.cpp *.o *.R *.doc PLEK_setup.py && \
 	chmod 755 * && \
-	# dos2unix in perl one-liner: remove BOM head and deal with \r problem
 	perl -CD -pi -e'tr/\x{feff}//d && s/[\r\n]+/\n/' *.py && \
 	ln -s /opt/PLEK.1.2/* /usr/local/bin/ && \
 	rm /opt/PLEK.1.2.tar.gz
 
-# Install CNCI
 # Use bash instead for shopt only works with bash
 SHELL ["/bin/bash", "-c"]
 
+# Install CNCI
+# Enable the extglob shell option
+# Parentheses and the pipe symbol should be escaped
 RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /opt/CNCI-master.zip && \
 	unzip -qq /opt/CNCI-master.zip -d /opt/ && \
 	rm /opt/CNCI-master.zip && \
@@ -121,9 +124,7 @@ RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /op
 	rm /opt/CNCI-master/libsvm-3.0.zip && \
 	cd /opt/CNCI-master/libsvm-3.0 && \
 	make > /dev/null 2>&1 && \
-	# enable the extglob shell option
 	shopt -s extglob && \
-	# Parentheses and the pipe symbol should be escaped
 	rm -rfv !\("svm-predict"\|"svm-scale"\) && \
 	cd .. && \
 	rm draw_class_pie.R LICENSE README.md && \
@@ -131,7 +132,7 @@ RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /op
 	ln -s /opt/CNCI-master/*.py /usr/local/bin/
 
 # Set back to default shell
-# SHELL ["/bin/sh", "-c"]
+SHELL ["/bin/sh", "-c"]
 	
 # Install StringTie
 RUN aria2c http://ccb.jhu.edu/software/stringtie/dl/stringtie-1.3.3b.Linux_x86_64.tar.gz -q -o /opt/stringtie-1.3.3b.Linux_x86_64.tar.gz && \
@@ -150,9 +151,9 @@ RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linu
 	ln -sf /opt/hisat2-2.1.0/*.py /usr/local/bin/
 	
 # Install Kallisto
+# There's some trashy pointers in Kallisto tarball
 RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kallisto_linux-v0.43.1.tar.gz -q -o  /opt/kallisto_linux-v0.43.1.tar.gz && \
 	tar xf /opt/kallisto_linux-v0.43.1.tar.gz --use-compress-prog=pigz -C /opt/ && \
-	# There's some trashy pointers in Kallisto tarball
 	cd /opt && \
 	rm ._* kallisto_linux-v0.43.1.tar.gz && \
 	cd kallisto_linux-v0.43.1 && \
@@ -205,21 +206,31 @@ RUN aria2c https://github.com/bedops/bedops/releases/download/v2.4.29/bedops_lin
 	rm /opt/bedops_linux_x86_64-v2.4.29.tar.bz2
 	
 # Install AfterQC
-RUN aria2c https://github.com/OpenGene/AfterQC/archive/v0.9.6.tar.gz -q -o /opt/v0.9.6.tar.gz && \
-	tar xf /opt/v0.9.6.tar.gz --use-compress-prog=pigz -C /opt/ && \
-	cd /opt/AfterQC-0.9.6 && \
+# Use PyPy to run AfterQC as default
+RUN aria2c https://github.com/OpenGene/AfterQC/archive/v0.9.7.tar.gz -q -o /opt/AfterQC-0.9.7.tar.gz && \
+	tar xf /opt/AfterQC-0.9.7.tar.gz --use-compress-prog=pigz -C /opt/ && \
+	cd /opt/AfterQC-0.9.7 && \
 	make && \
-	# Use PyPy to run AfterQC as default
 	perl -i -lape's/python/pypy/ if $. == 1' after.py && \
 	rm -rf Dockerfile Makefile README.md testdata report_sample && \
-	ln -s /opt/AfterQC-0.9.6/*.py /usr/local/bin/ && \
-	rm /opt/v0.9.6.tar.gz
+	rm editdistance/*.cpp editdistance/*.h && \
+	ln -s /opt/AfterQC-0.9.7/*.py /usr/local/bin/ && \
+	rm /opt/AfterQC-0.9.7.tar.gz
 	
-
-# Install R package LncPipeReporter
+# Install R package LncPipeReporter（via GitHub)
 RUN Rscript -e "source('http://bioconductor.org/biocLite.R'); install.packages(c('curl', 'httr')); install.packages('devtools'); devtools::install_github('bioinformatist/LncPipeReporter')"
 
-# Lines below maybe used later	
+# Install GffCompare
+RUN aria2c https://github.com/gpertea/gffcompare/archive/master.zip -q -o /opt/gffcompare-master.zip && \
+	aria2c https://github.com/gpertea/gclib/archive/master.zip -q -o /opt/gclib-master.zip && \
+	unzip -qq /opt/gffcompare-master.zip -d /opt/ && \
+	unzip -qq /opt/gclib-master.zip -d /opt/ && \
+	rm /opt/gffcompare-master.zip /opt/gclib-master.zip && \
+	cd /opt/gffcompare-master && \
+	make release
+
+
+# Lines below maybe used in the future
 # Install BWA
 #RUN bash -c 'aria2c https://codeload.github.com/lh3/bwa/zip/master -q -o /opt/bwa-master.zip && \
 #	unzip -qq /opt/bwa-master.zip -d /opt/ && \
