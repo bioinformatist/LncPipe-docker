@@ -68,7 +68,7 @@ WORKDIR /
 # DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
 # Keep the image size down
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
-	python /opt/get-pip.py --no-wheel && \
+	python /opt/get-pip.py --no-setuptools --no-wheel && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
@@ -93,10 +93,12 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 	
 # Install CPAT
 # DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
+# Remove distribute_setup::use_setuptools() for: https://stackoverflow.com/questions/46967488/getting-error-403-while-installing-package-with-pip/46979531#46979531
 RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -o /opt/CPAT-1.2.3.tar.gz && \
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/CPAT-1.2.3/ && \
 	mv dat/* /LncPipeDB/ && \
+	perl -i -lanE'say unless $. == 21' setup.py && \
 	python setup.py install && \
 	rm -rf /opt/CPAT*
 	
