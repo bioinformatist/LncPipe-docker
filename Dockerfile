@@ -64,11 +64,11 @@ COPY *.gz /LncPipeDB/
 # Set working directory back to /
 WORKDIR /
 	
-# Install latest pip WITHOUT setuptools and wheel
+# Install latest pip WITH setuptools (required by setup.py in CPAT) but WITHOUT wheel
 # DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
 # Keep the image size down
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
-	python /opt/get-pip.py --no-setuptools --no-wheel && \
+	python /opt/get-pip.py --no-wheel && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
