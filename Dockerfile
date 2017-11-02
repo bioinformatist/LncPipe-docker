@@ -1,4 +1,4 @@
-FROM ubuntu
+SFROM ubuntu
 
 LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 	description="Docker image containing all requirements for LncPipe"
@@ -55,8 +55,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 # Download databases
 # ADD CANNOT download FTP links and CANNOT resume from break point
 RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q && \
-	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q && \
-	aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/data/grch38_tran.tar.gz -q
+	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q
 
 # COPY local databases (we don't need auto-decompression, so DO NOT use ADD)
 COPY *.gz /LncPipeDB/
@@ -94,7 +93,7 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 # Install CPAT
 # DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
 # Remove distribute_setup::use_setuptools() for: https://stackoverflow.com/questions/46967488/getting-error-403-while-installing-package-with-pip/46979531#46979531
-RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -o /opt/CPAT-1.2.3.tar.gz && \
+RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
 	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/CPAT-1.2.3/ && \
 	mv dat/* /LncPipeDB/ && \
