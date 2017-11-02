@@ -1,4 +1,4 @@
-SFROM ubuntu
+FROM ubuntu
 
 LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 	description="Docker image containing all requirements for LncPipe"
