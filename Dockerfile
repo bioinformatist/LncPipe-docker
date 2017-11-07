@@ -16,40 +16,37 @@ ENTRYPOINT pigz -d /LncPipeDB/*.gz && \
 	/bin/bash
 	
 # Update OS
-# Relieve the dependence of readline perl library by prohibiting interactive frontend first
+# DEBIAN_FRONTEND=noninteractive is for relieving the dependence of readline perl library by prohibiting interactive frontend
+# default-jre is for NextFlow (run groovy)
+# gcc and g++ is for compiling CPAT, PLEK as well as some R packages
+# gfortran is for compiling R package hexbin (required by plotly)
+# make is for executing makefiles for several tools
+# Cython provides C header files like Python.h for CPAT compiling
+# DO NOT use pip for installing Cython, which will cause missing .h files
+# zlib1g-dev is for CPAT compiling dependency
+# libncurses5-dev for samtools (may be used later)
+# libssl-dev is for R package openssl
+# libcurl4-openssl-dev is for R package curl
+# perl brings us FindBin module, which is required by FastQC
+# ca-certificates is required by aria2
 RUN export DEBIAN_FRONTEND=noninteractive && \
-	apt-get -qq update &&\
+	apt-get -qq update && \
 	apt-get -qq install -y --no-install-recommends \
-	# For Nextflow (run groovy)
 	default-jre \
-	# For decompress GitHub archieve
 	unzip \
 	pbzip2 \
 	pigz \
 	aria2 \
-	# Below two is needed for CPAT and PLEK compiling
 	gcc \
 	g++ \
-	# Needed when compiling R package hexbin (required by plotly)
 	gfortran \
-	# For exec makefile of libsvm-3.0 used by CNCI
 	make \
-	# Provide head file like Python.h for CPAT compiling
 	python-dev \
-	# Must install cython HERE, DO NOT use pip, which will cause missing .h files
 	cython \
-	# For CPAT compiling dependency
 	zlib1g-dev \
-	# For samtools compiling dependency
-	# libncurses5-dev \
-	# Required by R package openssl
 	libssl-dev \
-	# Required by R package curl
 	libcurl4-openssl-dev \
-	# Required by cpanm, or will get "Can't locate PerlIO.pm in @INC" error
-	# With FindBin module，also is required by FastQC 
 	perl \
-	# Required by aria2c
 	ca-certificates
 
 # Download databases
@@ -104,7 +101,7 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.ta
 # Install PLEK
 # Remove documents, demo files, source files, object files and R scripts
 # dos2unix in perl one-liner: remove BOM head and deal with \r problem
-RUN aria2c https://nchc.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
+RUN aria2c https://ncu.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /opt/PLEK.1.2.tar.gz && \
 	tar xf /opt/PLEK.1.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
@@ -163,9 +160,10 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 	rm -rf ._* 	README.md test && \
 	ln -s /opt/kallisto_linux-v0.43.1/kallisto /usr/local/bin/
 	
-# Install Microsoft-R-Open with MKL
-RUN aria2c https://mran.microsoft.com/install/mro/3.4.0/microsoft-r-open-3.4.0.tar.gz -q -o /opt/microsoft-r-open-3.4.0.tar.gz && \
-	tar xf /opt/microsoft-r-open-3.4.0.tar.gz --use-compress-prog=pigz -C /opt/ && \
+# Install Microsoft-R-Open with MKL, you must use MRO v3.4.2 or later
+# For more, see this GitHub issue comment: https://github.com/Microsoft/microsoft-r-open/issues/26#issuecomment-340276347
+RUN aria2c http://mran.microsoft.com/install/mro/3.4.2/microsoft-r-open-3.4.2.tar.gz -q -o /opt/microsoft-r-open-3.4.2.tar.gz && \
+	tar xf /opt/microsoft-r-open-3.4.2.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/microsoft-r-open && \
 	./install.sh -as && \
 	rm -rf /opt/microsoft-r*
@@ -229,8 +227,11 @@ RUN aria2c https://github.com/gpertea/gffcompare/archive/master.zip -q -o /opt/g
 	unzip -qq /opt/gffcompare-master.zip -d /opt/ && \
 	unzip -qq /opt/gclib-master.zip -d /opt/ && \
 	rm /opt/gffcompare-master.zip /opt/gclib-master.zip && \
+	mv /opt/gclib-master /opt/gclib && \
 	cd /opt/gffcompare-master && \
-	make release
+	make release && \
+	rm Makefile README.md gtf_tracking.h *.o *.cpp *.sh && \
+	ln -s /opt/gffcompare-master/gffcompare /usr/local/bin/
 
 
 # Lines below maybe used in the future
