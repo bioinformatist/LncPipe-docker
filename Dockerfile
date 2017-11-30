@@ -233,6 +233,12 @@ RUN aria2c https://github.com/gpertea/gffcompare/archive/master.zip -q -o /opt/g
 	rm Makefile README.md gtf_tracking.h *.o *.cpp *.sh && \
 	ln -s /opt/gffcompare-master/gffcompare /usr/local/bin/
 
+# Install sambamba
+RUN aria2c https://github.com/biod/sambamba/releases/download/v0.6.7/sambamba_v0.6.7_linux.tar.bz2 -q -o /opt/sambamba_v0.6.7_linux.tar.bz2 && \
+	tar xf /opt/sambamba_v0.6.7_linux.tar.bz2 --use-compress-prog=pbzip2 -C /opt/ && \
+	ln -s /opt/sambamba /usr/local/bin/ && \
+	rm /opt/sambamba_v0.6.7_linux.tar.bz2
+
 
 # Lines below maybe used in the future
 # Install BWA
