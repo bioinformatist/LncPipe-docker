@@ -13,6 +13,7 @@ ENTRYPOINT pigz -d /LncPipeDB/*.gz && \
 	mv /LncPipeDB/gencode.v27.annotation.gtf /LncPipeDB/hg38 && \
 	mv /LncPipeDB/*hg19*.gtf /LncPipeDB/hg19 && \
 	mv /LncPipeDB/gencode.v27lift37.annotation.gtf /LncPipeDB/hg19 && \
+	chmod -R 777 /LncPipeDB/ && \
 	/bin/bash
 	
 # Update OS
