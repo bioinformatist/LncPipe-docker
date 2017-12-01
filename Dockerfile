@@ -108,7 +108,8 @@ RUN aria2c https://ncu.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /op
 	rm *.pdf *.txt *.h *.c *.fa *.cpp *.o *.R *.doc PLEK_setup.py && \
 	chmod 755 * && \
 	perl -CD -pi -e'tr/\x{feff}//d && s/[\r\n]+/\n/' *.py && \
-	ln -s /opt/PLEK.1.2/*.py /usr/local/bin/ && \
+	ln -s /opt/PLEK.1.2/PLEK* /usr/local/bin/ && \
+	ln -s /opt/PLEK.1.2/svm* /usr/local/bin/ && \
 	rm /opt/PLEK.1.2.tar.gz
 
 # Use bash instead for shopt only works with bash
