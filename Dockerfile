@@ -48,12 +48,12 @@ RUN pip -qqq install numpy
 	
 # Install nextflow
 RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nextflow -q -o /opt/nextflow && \
-	chmod 755 /opt/nextflow && \
+	chmod 777 /opt/nextflow && \
 	ln -s /opt/nextflow /usr/local/bin
 	
 # Install STAR
 RUN aria2c https://raw.githubusercontent.com/alexdobin/STAR/master/bin/Linux_x86_64/STAR -q -o /opt/STAR && \
-	chmod 755 /opt/STAR && \
+	chmod 777 /opt/STAR && \
 	ln -s /opt/STAR /usr/local/bin
 
 # Install cufflinks	
@@ -71,7 +71,7 @@ RUN aria2c https://ncu.dl.sourceforge.net/project/plek/PLEK.1.2.tar.gz -q -o /op
 	cd /opt/PLEK.1.2/ && \
 	python PLEK_setup.py || : && \
 	rm *.pdf *.txt *.h *.c *.fa *.cpp *.o *.R *.doc PLEK_setup.py && \
-	chmod 755 * && \
+	chmod 777 * && \
 	perl -CD -pi -e'tr/\x{feff}//d && s/[\r\n]+/\n/' *.py && \
 	ln -s /opt/PLEK.1.2/PLEK* /usr/local/bin/ && \
 	ln -s /opt/PLEK.1.2/svm* /usr/local/bin/ && \
@@ -94,7 +94,7 @@ RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /op
 	rm -rfv !\("svm-predict"\|"svm-scale"\) && \
 	cd .. && \
 	rm draw_class_pie.R LICENSE README.md && \
-	chmod -R 755 * && \
+	chmod -R 777 * && \
 	ln -s /opt/CNCI-master/*.py /usr/local/bin/
 
 # Install CPAT
@@ -105,7 +105,8 @@ RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.ta
 	cd /opt/CPAT-1.2.3/ && \
 	perl -i -lanE'say unless $. == 21' setup.py && \
 	python setup.py install && \
-	rm -rfv !"dat"
+	rm -rfv !"dat" && \
+	chmod -R 777 *
 
 # Set back to default shell
 SHELL ["/bin/sh", "-c"]
@@ -162,7 +163,7 @@ RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.1
 	cd /opt/FastQC && \
 	shopt -s extglob && \
 	rm -rfv !\("fastqc"\|*.jar\) && \
-	chmod 755 * && \
+	chmod 777 * && \
 	ln -s /opt/FastQC/fastqc /usr/local/bin/
 	
 # Install Pandoc (required by reporter)
