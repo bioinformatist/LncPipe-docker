@@ -39,8 +39,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	
 # Install latest pip WITHOUT wheel and setuptools
 # DO NOT use apt-get python-pip in ubuntu for preventing from complicated related tools and libraries
+# Setuptools is required by CPAT during its installation
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
-	python /opt/get-pip.py --no-wheel --no-setuptools && \
+	python /opt/get-pip.py --no-wheel && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
