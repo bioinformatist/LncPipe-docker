@@ -2,19 +2,6 @@ FROM ubuntu
 
 LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 	description="Docker image containing all requirements for LncPipe"
-
-# pigz will decompress all archieves to this directory
-WORKDIR /LncPipeDB/
-
-# Once the container started, decompress all databases
-ENTRYPOINT pigz -d /LncPipeDB/*.gz && \
-	mkdir /LncPipeDB/hg38 /LncPipeDB/hg19 && \
-	mv /LncPipeDB/*hg38*.gtf /LncPipeDB/hg38 && \
-	mv /LncPipeDB/gencode.v27.annotation.gtf /LncPipeDB/hg38 && \
-	mv /LncPipeDB/*hg19*.gtf /LncPipeDB/hg19 && \
-	mv /LncPipeDB/gencode.v27lift37.annotation.gtf /LncPipeDB/hg19 && \
-	chmod -R 777 /LncPipeDB/ && \
-	/bin/bash
 	
 # Update OS
 # DEBIAN_FRONTEND=noninteractive is for relieving the dependence of readline perl library by prohibiting interactive frontend
@@ -49,23 +36,11 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	libcurl4-openssl-dev \
 	perl \
 	ca-certificates
-
-# Download databases
-# ADD CANNOT download FTP links and CANNOT resume from break point
-RUN aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/gencode.v27.annotation.gtf.gz -q && \
-	aria2c ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_27/GRCh37_mapping/gencode.v27lift37.annotation.gtf.gz -q
-
-# COPY local databases (we don't need auto-decompression, so DO NOT use ADD)
-COPY *.gz /LncPipeDB/
-
-# Set working directory back to /
-WORKDIR /
 	
-# Install latest pip WITH setuptools (required by setup.py in CPAT) but WITHOUT wheel
-# DO NOT use apt-get python-pip in ubuntu to prevent from complicated related tools and libraries
-# Keep the image size down
+# Install latest pip WITHOUT wheel and setuptools
+# DO NOT use apt-get python-pip in ubuntu for preventing from complicated related tools and libraries
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
-	python /opt/get-pip.py --no-wheel && \
+	python /opt/get-pip.py --no-wheel --no-setuptools && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
@@ -87,17 +62,6 @@ RUN aria2c https://github.com/bioinformatist/cufflinks/releases/download/v2.2.1/
 	rm /opt/cufflinks-2.2.1.Linux_x86_64/README && \
 	ln -s /opt/cufflinks-2.2.1.Linux_x86_64/* /usr/local/bin/ && \
 	rm /opt/cufflinks-2.2.1.Linux_x86_64.tar.gz
-	
-# Install CPAT
-# DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
-# Remove distribute_setup::use_setuptools() for: https://stackoverflow.com/questions/46967488/getting-error-403-while-installing-package-with-pip/46979531#46979531
-RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
-	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
-	cd /opt/CPAT-1.2.3/ && \
-	mv dat/* /LncPipeDB/ && \
-	perl -i -lanE'say unless $. == 21' setup.py && \
-	python setup.py install && \
-	rm -rf /opt/CPAT*
 	
 # Install PLEK
 # Remove documents, demo files, source files, object files and R scripts
@@ -133,6 +97,16 @@ RUN aria2c https://codeload.github.com/www-bioinfo-org/CNCI/zip/master -q -o /op
 	chmod -R 755 * && \
 	ln -s /opt/CNCI-master/*.py /usr/local/bin/
 
+# Install CPAT
+# DO NOT use absolute path when setup, and changing directory is necessary. Python interpreter will check current directory for dependencies
+# Remove line 21 from setup.py: distribute_setup::use_setuptools() for: https://stackoverflow.com/questions/46967488/getting-error-403-while-installing-package-with-pip/46979531#46979531
+RUN aria2c https://nchc.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1.2.3.tar.gz -q -o /opt/CPAT-1.2.3.tar.gz && \
+	tar xf /opt/CPAT-1.2.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
+	cd /opt/CPAT-1.2.3/ && \
+	perl -i -lanE'say unless $. == 21' setup.py && \
+	python setup.py install && \
+	rm -rfv !"dat"
+
 # Set back to default shell
 SHELL ["/bin/sh", "-c"]
 	
@@ -153,7 +127,7 @@ RUN aria2c ftp://ftp.ccb.jhu.edu/pub/infphilo/hisat2/downloads/hisat2-2.1.0-Linu
 	ln -sf /opt/hisat2-2.1.0/*.py /usr/local/bin/
 	
 # Install Kallisto
-# There's some trashy pointers in Kallisto tarball
+# There's some trashy pointers in Kallisto tarball archieve
 RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kallisto_linux-v0.43.1.tar.gz -q -o  /opt/kallisto_linux-v0.43.1.tar.gz && \
 	tar xf /opt/kallisto_linux-v0.43.1.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt && \
