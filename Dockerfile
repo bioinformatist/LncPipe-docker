@@ -217,6 +217,9 @@ RUN aria2c https://github.com/biod/sambamba/releases/download/v0.6.7/sambamba_v0
 	ln -s /opt/sambamba /usr/local/bin/ && \
 	rm /opt/sambamba_v0.6.7_linux.tar.bz2
 
+# Change privilege to fit NextFlow's volume settings
+RUN umask 000
+
 
 # Lines below maybe used in the future
 # Install BWA
