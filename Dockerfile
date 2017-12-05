@@ -198,6 +198,8 @@ RUN aria2c https://github.com/OpenGene/AfterQC/archive/v0.9.7.tar.gz -q -o /opt/
 	
 # Install R package LncPipeReporter（via GitHub)
 RUN Rscript -e "source('http://bioconductor.org/biocLite.R'); install.packages(c('curl', 'httr')); install.packages('devtools'); devtools::install_github('bioinformatist/LncPipeReporter')"
+# Set privilege for save temporary results
+RUN chmod -R 777 /opt/microsoft/ropen/3.4.2/lib64/R/library/LncPipeReporter
 
 # Install GffCompare
 RUN aria2c https://github.com/gpertea/gffcompare/archive/master.zip -q -o /opt/gffcompare-master.zip && \
