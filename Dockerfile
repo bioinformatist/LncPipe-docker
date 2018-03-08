@@ -219,6 +219,10 @@ RUN aria2c https://github.com/biod/sambamba/releases/download/v0.6.7/sambamba_v0
 	ln -s /opt/sambamba /usr/local/bin/ && \
 	rm /opt/sambamba_v0.6.7_linux.tar.bz2
 
+# Install fastp
+RUN aria2c http://opengene.org/fastp/fastp -q -o /usr/local/bin/fastp && \
+	chmod a+x /usr/local/bin/fastp
+
 # Change privilege permanently to fit NextFlow's volume settings
 RUN echo "umask 000" >> /etc/profile
 
