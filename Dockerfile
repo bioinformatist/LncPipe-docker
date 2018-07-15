@@ -142,10 +142,10 @@ RUN aria2c https://github.com/pachterlab/kallisto/releases/download/v0.43.1/kall
 	
 # Install Microsoft-R-Open with MKL, you must use MRO v3.4.2 or later
 # For more, see this GitHub issue comment: https://github.com/Microsoft/microsoft-r-open/issues/26#issuecomment-340276347
-RUN aria2c https://mran.blob.core.windows.net/install/mro/3.4.3/microsoft-r-open-3.4.3.tar.gz -q -o /opt/microsoft-r-open-3.4.3.tar.gz && \
-	tar xf /opt/microsoft-r-open-3.4.3.tar.gz --use-compress-prog=pigz -C /opt/ && \
+RUN aria2c https://mran.blob.core.windows.net/install/mro/3.5.0/microsoft-r-open-3.5.0.tar.gz -q -o /opt/microsoft-r-open-3.5.0.tar.gz && \
+	tar xf /opt/microsoft-r-open-3.5.0.tar.gz --use-compress-prog=pigz -C /opt/ && \
 	cd /opt/microsoft-r-open && \
-	./install.sh -as && \
+	./install.sh -au && \
 	rm -rf /opt/microsoft-r*
 
 # Cleaning up the apt cache helps keep the image size down (must be placed here, since MRO installation need the cache)
