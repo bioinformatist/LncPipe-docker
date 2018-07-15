@@ -161,6 +161,15 @@ RUN aria2c https://mran.blob.core.windows.net/install/mro/3.5.0/microsoft-r-open
 # Cleaning up the apt cache helps keep the image size down (must be placed here, since MRO installation need the cache)
 RUN rm -rf /var/lib/apt/lists/*
 
+# To fix problem by mozjepg (will cause error when running MRO)
+# See https://github.com/tcoopman/image-webpack-loader/issues/95
+RUN aria2c http://mirrors.kernel.org/ubuntu/pool/main/libp/libpng/libpng12-0_1.2.54-1ubuntu1_amd64.deb -q -o /tmp/libpng12.deb && \
+	dpkg -i /tmp/libpng12.deb && \
+	rm /tmp/libpng12.deb
+
+# Setup R configs
+RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.us.r-project.org'; options(repos = r);" > ~/.Rprofile
+
 # Install cpanminus
 # RUN aria2c https://cpanmin.us/ -q -o /opt/cpanm && \
 #	chmod +x /opt/cpanm && \
