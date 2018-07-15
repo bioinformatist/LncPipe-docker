@@ -110,6 +110,16 @@ RUN aria2c https://excellmedia.dl.sourceforge.net/project/rna-cpat/v1.2.3/CPAT-1
 	python setup.py install && \
 	rm -rfv !"dat" && \
 	chmod -R 777 *
+	
+# Install FastQC
+RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip -q -o /opt/fastqc_v0.11.5.zip && \
+	unzip -qq /opt/fastqc_v0.11.5.zip -d /opt/ && \
+	rm /opt/fastqc_v0.11.5.zip && \
+	cd /opt/FastQC && \
+	shopt -s extglob && \
+	rm -rfv !\("fastqc"\|*.jar\) && \
+	chmod 777 * && \
+	ln -s /opt/FastQC/fastqc /usr/local/bin/
 
 # Set back to default shell
 SHELL ["/bin/sh", "-c"]
@@ -158,16 +168,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Install Perl module FindBin, which is required by FastQC
 # RUN cpanm FindBin
-
-# Install FastQC
-RUN aria2c https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip -q -o /opt/fastqc_v0.11.5.zip && \
-	unzip -qq /opt/fastqc_v0.11.5.zip -d /opt/ && \
-	rm /opt/fastqc_v0.11.5.zip && \
-	cd /opt/FastQC && \
-	shopt -s extglob && \
-	rm -rfv !\("fastqc"\|*.jar\) && \
-	chmod 777 * && \
-	ln -s /opt/FastQC/fastqc /usr/local/bin/
 	
 # Install Pandoc (required by reporter)
 RUN aria2c https://github.com/jgm/pandoc/releases/download/1.19.2.1/pandoc-1.19.2.1-1-amd64.deb -q -o /opt/pandoc-1.19.2.1-1-amd64.deb && \
