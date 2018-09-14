@@ -41,7 +41,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	perl \
 	ca-certificates
 	
-# Install latest pip WITHOUT wheel and setuptools
+# Install latest pip WITHOUT wheel while with setuptools
 # DO NOT use apt-get python-pip in ubuntu for preventing from complicated related tools and libraries
 # Setuptools is required by CPAT during its installation
 RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
@@ -49,7 +49,7 @@ RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
-RUN pip -qqq install numpy matplotlib pysam htseq
+RUN pip install numpy matplotlib pysam htseq
 	
 # Install nextflow
 RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nextflow -q -o /opt/nextflow && \
