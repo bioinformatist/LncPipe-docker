@@ -6,6 +6,7 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 # Update OS
 # DEBIAN_FRONTEND=noninteractive is for relieving the dependence of readline perl library by prohibiting interactive frontend
 # build-essential is for HTSeq building
+# libbz2-dev is for building HTSlib
 # default-jre is for NextFlow (run groovy)
 # gcc and g++ is for compiling CPAT, PLEK as well as some R packages
 # gfortran is for compiling R package hexbin (required by plotly)
@@ -23,6 +24,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	apt-get -qq update && \
 	apt-get -qq install -y --no-install-recommends \
 	build-essential \
+	libbz2-dev \
 	default-jre \
 	unzip \
 	pbzip2 \
