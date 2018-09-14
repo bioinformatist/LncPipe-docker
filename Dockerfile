@@ -5,6 +5,7 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 	
 # Update OS
 # DEBIAN_FRONTEND=noninteractive is for relieving the dependence of readline perl library by prohibiting interactive frontend
+# build-essential is for HTSeq building
 # default-jre is for NextFlow (run groovy)
 # gcc and g++ is for compiling CPAT, PLEK as well as some R packages
 # gfortran is for compiling R package hexbin (required by plotly)
@@ -21,6 +22,7 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 RUN export DEBIAN_FRONTEND=noninteractive && \
 	apt-get -qq update && \
 	apt-get -qq install -y --no-install-recommends \
+	build-essential \
 	default-jre \
 	unzip \
 	pbzip2 \
@@ -47,7 +49,7 @@ RUN aria2c https://bootstrap.pypa.io/get-pip.py -q -o /opt/get-pip.py && \
 	rm /opt/get-pip.py
 
 # Install required python packages	
-RUN pip -qqq install numpy
+RUN pip -qqq install numpy matplotlib pysam htseq
 	
 # Install nextflow
 RUN aria2c https://github.com/nextflow-io/nextflow/releases/download/v0.25.6/nextflow -q -o /opt/nextflow && \
