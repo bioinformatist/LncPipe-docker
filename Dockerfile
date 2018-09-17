@@ -14,6 +14,7 @@ LABEL authors="zhaoqi@sysucc.org.cn,sun_yu@mail.nankai.edu.cn" \
 # Cython provides C header files like Python.h for CPAT compiling
 # DO NOT use pip for installing Cython, which will cause missing .h files
 # zlib1g-dev is for CPAT compiling dependency
+# liblzma-dev is for HTSeq building
 # libncurses5-dev for samtools (may be used later)
 # libssl-dev is for R package openssl
 # libxml2-dev is for R package XML, which is needed by DESeq2
@@ -37,6 +38,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 	python-dev \
 	cython \
 	zlib1g-dev \
+	liblzma-dev \
 	libssl-dev \
 	libxml2-dev \
 	libcurl4-openssl-dev \
